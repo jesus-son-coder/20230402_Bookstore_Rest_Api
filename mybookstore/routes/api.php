@@ -16,14 +16,26 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
-
-Route::resource('books', BookController::class)->except(['create','edit']);
-
 Route::prefix('auth')->group(function() {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 });
+
+// Global Authentication for API routes
+Route::middleware('auth:sanctum')->group(function() {
+
+    Route::get('/user', function(Request $request) {
+       return $request->user();
+    });
+
+    // Admin-only routes
+    Route::middleware('CheckRole:admin')->group(function() {
+        // Routes accessible only by admin (e.g. POST/books,  PUT /books{id}, ...)
+        Route::resource('books', BookController::class)->except(['create','edit']);
+    });
+
+});
+
+
+
